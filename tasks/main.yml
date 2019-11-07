@@ -1,0 +1,70 @@
+---
+
+- name: Include distribution specific variables
+  include_vars:
+    file: "{{ item }}"
+    name: _os_specific
+  with_first_found:
+    - "{{ ansible_distribution_release | lower}}.yml"
+    - "{{ ansible_distribution | lower}}.yml"
+    - "{{ ansible_os_family | lower }}.yml"
+    - "default.yml"
+
+- name: "remove old temporary path '{{ tmp_path }}'"
+  file:
+    path: "{{ tmp_path }}"
+    state: absent
+
+- name: create temporary path
+  file:
+    path: "{{ tmp_path }}"
+    state: directory
+
+- name: install depedencies
+  package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    "{{ snakeoil_depedencies }}"
+
+#- name: install depedencies
+#  pip:
+#    name: "{{ item }}"
+#    state: present
+#  loop:
+#    - pyOpenSSL
+
+
+- name: "Generate the private key file to sign the CSR"
+  openssl_privatekey:
+    path: "{{ pem_path }}"
+    passphrase: "{{ private_key_password }}"
+    cipher: auto
+
+- name: "Generate the CSR file signed with the private key"
+  openssl_csr:
+    path: "{{ csr_path }}"
+    privatekey_path: "{{ pem_path }}"
+    privatekey_passphrase: "{{ private_key_password }}"
+    common_name: "{{ dnsname }}"
+
+- name: "Sign the CSR file as a CA to turn it into a certificate"
+  openssl_certificate:
+    path: "{{ crt_path }}"
+    privatekey_path: "{{ pem_path }}"
+    privatekey_passphrase: "{{ private_key_password }}"
+    csr_path: "{{ csr_path }}"
+    provider: selfsigned
+
+- name: "Convert the signed certificate into a PKCS12 file with the attached private key"
+  openssl_pkcs12:
+    action: export
+    path: "{{ pfx_path }}"
+    name: "{{ dnsname }}"
+    privatekey_path: "{{ pem_path }}"
+    privatekey_passphrase: "{{ private_key_password }}"
+    passphrase: password
+    certificate_path: "{{ crt_path }}"
+    state: present
+
+

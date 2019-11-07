@@ -1,0 +1,5 @@
+---
+
+snakeoil_depedencies:
+  - python-crypto
+  - python-cryptography
