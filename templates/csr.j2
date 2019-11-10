@@ -1,13 +1,4 @@
-# ansible-snakeoil
 
-build a simple snakeoil certificate for a test environment.
-
-we use as base dn *cm.local*
-
-## manuel creation
-
-```
-cat > csr_details.txt <<-EOF
 [req]
 default_bits = 4096
 prompt = no
@@ -49,19 +40,3 @@ IP.2   = 192.168.124.20
 IP.3   = 192.168.124.30
 IP.4   = 192.168.124.35
 IP.5   = 192.168.124.50
-EOF
-
-# Let’s call openssl now by piping the newly created file in
-openssl req -new -sha512 -nodes -out cm.local.csr -newkey rsa:4096 -keyout cm.local.key -config <( cat csr_details.txt )
-openssl dhparam -out dh.pem 2048
-
-#
-openssl req -noout -verify -in cm.local.csr
-openssl req -text -noout -in cm.local.csr
-
-#
-openssl x509 -in cm.local.csr -out cm.local.pem -req -signkey cm.local.key -days 365
-
-cat cm.local.key >> cm.local.pem
-```
-

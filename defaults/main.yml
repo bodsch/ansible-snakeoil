@@ -1,11 +1,3 @@
 ---
 
-dnsname: your.dns.name
-private_key_password: "password"
-
-tmp_path: "./.snakeoil-tmp/"
-
-crt_path: "{{ tmp_path }}{{ dnsname }}.crt"
-pem_path: "{{ tmp_path }}{{ dnsname }}.pem"
-csr_path: "{{ tmp_path }}{{ dnsname }}.csr"
-pfx_path: "{{ tmp_path }}{{ dnsname }}.pfx"
+tmp_path: "{{ local_tmp_directory }}/snakeoil"
