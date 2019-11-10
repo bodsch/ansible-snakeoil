@@ -60,7 +60,7 @@ openssl req -noout -verify -in cm.local.csr
 openssl req -text -noout -in cm.local.csr
 
 #
-openssl x509 -in cm.local.csr -out cm.local.pem -req -signkey cm.local.key -days 365
+openssl x509 -in cm.local.csr -out cm.local.pem -req -signkey cm.local.key -days 29
 
 cat cm.local.key >> cm.local.pem
 ```

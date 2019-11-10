@@ -1,3 +1,5 @@
 ---
 
+snakeoil_force: false
+
 tmp_path: "{{ local_tmp_directory }}/snakeoil"
