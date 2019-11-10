@@ -56,3 +56,19 @@
     dest: "{{ deployment_tmp_directory }}/"
   tags:
     - snakeoil
+
+- block:
+
+    - name: create {{ snakeoil_extract_to }}
+      file:
+        path: "{{ snakeoil_extract_to }}"
+        state: directory
+
+    - name: extract snakeoil
+      unarchive:
+        src: "{{ deployment_tmp_directory }}/snakeoil.tgz"
+        dest: "{{ snakeoil_extract_to }}"
+        remote_src: true
+  tags:
+    - snakeoil
+  when: snakeoil_extract_to is defined and snakeoil_extract_to != ''

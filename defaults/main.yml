@@ -2,4 +2,6 @@
 
 snakeoil_force: false
 
+snakeoil_extract_to: ''
+
 tmp_path: "{{ local_tmp_directory }}/snakeoil"
