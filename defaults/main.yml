@@ -1,7 +1,15 @@
 ---
 
-snakeoil_force: false
-
 snakeoil_extract_to: ''
 
 tmp_path: "{{ local_tmp_directory }}/snakeoil"
+
+snakeoil_domain: cm.local
+snakeoil_email: "cert@{{ snakeoil_domain }}"
+
+snakeoil_alt_names: []
+#  - dns:
+#      - cm.local
+#  - ip:
+#      - 192.168.124.10
+#

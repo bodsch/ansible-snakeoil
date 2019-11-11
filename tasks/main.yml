@@ -1,18 +1,10 @@
 ---
 
-- block:
-    - name: "remove old temporary path '{{ tmp_path }}'"
-      file:
-        path: "{{ tmp_path }}"
-        state: absent
-      delegate_to: localhost
-
-    - name: create temporary path
-      file:
-        path: "{{ tmp_path }}"
-        state: directory
-      delegate_to: localhost
-  when: snakeoil_force
+- name: create temporary path
+  file:
+    path: "{{ tmp_path }}"
+    state: directory
+  delegate_to: localhost
 
 - name: create openssl config
   template:
@@ -47,6 +39,12 @@
     path: "{{ local_tmp_directory }}/snakeoil"
     dest: "{{ local_tmp_directory }}/snakeoil.tgz"
     remove: true
+  delegate_to: localhost
+
+- name: "remove old temporary path '{{ tmp_path }}'"
+  file:
+    path: "{{ tmp_path }}"
+    state: absent
   delegate_to: localhost
 
 - name: propagate snakeoil.tgz
