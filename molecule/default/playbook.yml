@@ -4,4 +4,13 @@
   environment:
     NETRC: ''
   roles:
-    - snakeoil
+    - role: snakeoil
+      vars:
+        snakeoil_domain: bar.local
+        # snakeoil_force: true
+        snakeoil_alt_names:
+          - dns:
+              - foo.bar.local
+              - www.bar.local
+          - ip:
+              - 192.168.2.1

@@ -7,45 +7,27 @@ req_extensions = req_ext
 distinguished_name = dn
 
 [ dn ]
-C=DE
-ST=Hamburg
-L=Hamburg
-O=Acme, Inc
-OU=Testing Domain
-emailAddress=cert@cm.local
+C  = DE
+ST = Hamburg
+L  = Hamburg
+O  = Acme, Inc
+OU = Testing Domain
 CN = *.cm.local
+emailAddress = cert@cm.local
 
 [ req_ext ]
 subjectAltName = @alt_names
 
 [ alt_names ]
-# DNS.1  = cm.local
-# DNS.2  = database.cm.local
-# DNS.3  = backend.cm.local
-# DNS.4  = frontend.cm.local
-# DNS.5  = delivery.cm.local
-# DNS.6  = monitoring.cm.local
-# DNS.7  = mysql.cm.local
-# DNS.8  = mongo.cm.local
-# DNS.9  = *.delivery.cm.local
-# DNS.10 = *.backend.cm.local
-# DNS.11 = overview.cm.local
-# DNS.12 = corporate.cm.local
-# DNS.13 = studio.cm.local
-# DNS.14 = preview.cm.local
-# DNS.15 = *.be.cm.local
-# DNS.16 = *.fe.cm.local
-# IP.1   = 192.168.124.10
-# IP.2   = 192.168.124.20
-# IP.3   = 192.168.124.30
-# IP.4   = 192.168.124.35
-# IP.5   = 192.168.124.50
-
-{%- for n in snakeoil_alt_names -%}
+{% for n in snakeoil_alt_names -%}
+{% if n.dns is defined -%}
 {% for k in n.dns -%}
 DNS.{{ "%-3s" | format(loop.index) }} = {{ k }}
 {% endfor -%}
+{% endif %}
+{% if n.ip is defined -%}
 {% for k in n.ip -%}
 IP.{{ "%-4s" | format(loop.index) }} = {{ k }}
 {% endfor -%}
+{% endif %}
 {% endfor -%}
