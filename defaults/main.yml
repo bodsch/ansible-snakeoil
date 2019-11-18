@@ -2,10 +2,12 @@
 
 snakeoil_extract_to: ''
 
-tmp_path: "{{ local_tmp_directory }}/snakeoil"
+snakeoil_directory: "{{ local_tmp_directory }}/snakeoil"
 
 snakeoil_domain: cm.local
 snakeoil_email: "cert@{{ snakeoil_domain }}"
+
+snakeoil_life_time: 29
 
 snakeoil_alt_names: []
 #  - dns:
@@ -13,3 +15,4 @@ snakeoil_alt_names: []
 #  - ip:
 #      - 192.168.124.10
 #
+snakeoil_dhparam: 1024
