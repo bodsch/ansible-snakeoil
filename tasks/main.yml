@@ -1,5 +1,17 @@
 ---
 
+- name: check, the certificate domain is specified
+  assert:
+    that:
+      - snakeoil_domain is defined and snakeoil_domain | length != 0
+
+- name: "remove old temporary path '{{ snakeoil_directory }}'"
+  file:
+    path: "{{ snakeoil_directory }}/{{ snakeoil_domain }}"
+    state: absent
+  delegate_to: localhost
+  when: snakeoil_force
+
 - name: get system timestamp  # noqa 305
   shell: 'date +"%Y-%m-%dT%H:%M:%S"'
   register: timestamp
@@ -18,6 +30,7 @@
     path: "{{ snakeoil_directory }}/{{ snakeoil_domain }}/{{ snakeoil_domain }}.pem"
   delegate_to: localhost
   register: _certificate_created
+
 
 - block:
 
@@ -41,53 +54,85 @@
 
   when: _certificate_created.stat is defined and _certificate_created.stat.exists
 
+- block:
+
+    - name: create temporary path
+      file:
+        path: "{{ snakeoil_directory }}/{{ snakeoil_domain }}"
+        state: directory
+      delegate_to: localhost
+
+    - name: create openssl config
+      template:
+        src: csr.j2
+        dest: "{{ snakeoil_directory }}/{{ snakeoil_domain }}/{{ snakeoil_domain }}.conf"
+      delegate_to: localhost
+
+    - name: create {{ snakeoil_domain }}.csr
+      shell: |
+        openssl req -new -sha512 -nodes -out {{ snakeoil_domain }}.csr -newkey rsa:4096 -keyout {{ snakeoil_domain }}.key -config {{ snakeoil_domain }}.conf
+      args:
+        chdir: "{{ snakeoil_directory }}/{{ snakeoil_domain }}"
+      delegate_to: localhost
+
+    - name: create {{ snakeoil_domain }}.crt
+      shell: |
+        openssl x509 -in {{ snakeoil_domain }}.csr -out {{ snakeoil_domain }}.crt -req -signkey {{ snakeoil_domain }}.key -days {{ snakeoil_life_time }}
+        cat {{ snakeoil_domain }}.crt {{ snakeoil_domain }}.key >> {{ snakeoil_domain }}.pem
+      args:
+        chdir: "{{ snakeoil_directory }}/{{ snakeoil_domain }}"
+      delegate_to: localhost
+
+    - name: create dh.pem
+      shell: |
+        openssl dhparam -out dh.pem {{ snakeoil_dhparam }}
+      args:
+        chdir: "{{ snakeoil_directory }}/{{ snakeoil_domain }}"
+      delegate_to: localhost
+
+    - name: compress directory {{ snakeoil_directory }}
+      archive:
+        path: "{{ snakeoil_directory }}/{{ snakeoil_domain }}"
+        dest: "{{ local_tmp_directory }}/{{ snakeoil_domain }}.tgz"
+        # remove: true
+      delegate_to: localhost
+
+    - block:
+        - name: propagate {{ snakeoil_domain }}.tgz
+          become: true
+          copy:
+            src: "{{ local_tmp_directory }}/{{ snakeoil_domain }}.tgz"
+            dest: "{{ deployment_tmp_directory }}/"
+
+        - name: create {{ snakeoil_extract_to }}
+          file:
+            path: "{{ snakeoil_extract_to }}"
+            state: directory
+
+        - name: extract {{ snakeoil_domain }}.tgz
+          unarchive:
+            src: "{{ deployment_tmp_directory }}/{{ snakeoil_domain }}.tgz"
+            dest: "{{ snakeoil_extract_to }}"
+            remote_src: true
+      tags:
+        - snakeoil
+      when: snakeoil_extract_to is defined and snakeoil_extract_to | length != 0
 
 
-# - name: create temporary path
-#   file:
-#     path: "{{ snakeoil_directory }}/{{ snakeoil_domain }}"
-#     state: directory
-#   delegate_to: localhost
-#
-# - name: create openssl config
-#   template:
-#     src: csr.j2
-#     dest: "{{ snakeoil_directory }}/{{ snakeoil_domain }}/csr.txt"
-#   delegate_to: localhost
-#
-# - name: create csr
-#   shell: |
-#     openssl req -new -sha512 -nodes -out {{ snakeoil_domain }}.csr -newkey rsa:4096 -keyout {{ snakeoil_domain }}.key -config csr.txt
-#   args:
-#     chdir: "{{ snakeoil_directory }}/{{ snakeoil_domain }}"
-#   delegate_to: localhost
+  when: expire_diff_days <= 10 or( _certificate_created.stat is defined and not _certificate_created.stat.exists )
+
+
+
+
 #
 #
 #
 #
 #
 #
-# - name: create dh.pem
-#   shell: |
-#     openssl dhparam -out dh.pem {{ snakeoil_dhparam }}
-#   args:
-#     chdir: "{{ snakeoil_directory }}/{{ snakeoil_domain }}"
-#   delegate_to: localhost
 #
-# - name: create certificate
-#   shell: |
-#     openssl x509 -in {{ snakeoil_domain }}.csr -out {{ snakeoil_domain }}.crt -req -signkey {{ snakeoil_domain }}.key -days {{ snakeoil_life_time }}
-#     cat {{ snakeoil_domain }}.crt {{ snakeoil_domain }}.key >> {{ snakeoil_domain }}.pem
-#   args:
-#     chdir: "{{ snakeoil_directory }}/{{ snakeoil_domain }}"
-#   delegate_to: localhost
 #
-# # - name: compress directory {{ snakeoil_directory }}
-# #   archive:
-# #     path: "{{ snakeoil_directory }}/{{ snakeoil_domain }}"
-# #     dest: "{{ local_tmp_directory }}/{{ snakeoil_domain }}.tgz"
-# #     remove: true
-# #   delegate_to: localhost
+
 # #
 # # - name: "remove old temporary path '{{ snakeoil_directory }}'"
 # #   file:

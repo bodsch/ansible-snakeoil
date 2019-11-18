@@ -6,10 +6,11 @@
   roles:
     - role: snakeoil
       vars:
+        snakeoil_domain: bar.local
+        # snakeoil_force: true
         snakeoil_alt_names:
           - dns:
-              - cm.local
-              - foo.cm.local
-              - bar.cm.local
+              - foo.bar.local
+              - www.bar.local
           - ip:
               - 192.168.2.1

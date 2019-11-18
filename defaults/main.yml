@@ -4,7 +4,7 @@ snakeoil_extract_to: ''
 
 snakeoil_directory: "{{ local_tmp_directory }}/snakeoil"
 
-snakeoil_domain: cm.local
+snakeoil_domain: ''
 snakeoil_email: "cert@{{ snakeoil_domain }}"
 
 snakeoil_life_time: 29
@@ -16,3 +16,5 @@ snakeoil_alt_names: []
 #      - 192.168.124.10
 #
 snakeoil_dhparam: 1024
+
+snakeoil_force: false
