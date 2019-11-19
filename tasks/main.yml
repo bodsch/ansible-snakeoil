@@ -90,6 +90,11 @@
         chdir: "{{ snakeoil_directory }}/{{ snakeoil_domain }}"
       delegate_to: localhost
 
+  when: expire_diff_days | int <= 10 or ( _certificate_created.stat is defined and not _certificate_created.stat.exists )
+
+
+- block:
+
     - name: compress directory {{ snakeoil_directory }}
       archive:
         path: "{{ snakeoil_directory }}/{{ snakeoil_domain }}"
@@ -97,68 +102,24 @@
         # remove: true
       delegate_to: localhost
 
-    - block:
-        - name: propagate {{ snakeoil_domain }}.tgz
-          become: true
-          copy:
-            src: "{{ local_tmp_directory }}/{{ snakeoil_domain }}.tgz"
-            dest: "{{ deployment_tmp_directory }}/"
+    - name: propagate {{ snakeoil_domain }}.tgz
+      become: true
+      copy:
+        src: "{{ local_tmp_directory }}/{{ snakeoil_domain }}.tgz"
+        dest: "{{ deployment_tmp_directory }}/"
 
-        - name: create {{ snakeoil_extract_to }}
-          file:
-            path: "{{ snakeoil_extract_to }}"
-            state: directory
+    - name: create {{ snakeoil_extract_to }}
+      file:
+        path: "{{ snakeoil_extract_to }}"
+        state: directory
 
-        - name: extract {{ snakeoil_domain }}.tgz
-          unarchive:
-            src: "{{ deployment_tmp_directory }}/{{ snakeoil_domain }}.tgz"
-            dest: "{{ snakeoil_extract_to }}"
-            remote_src: true
-      tags:
-        - snakeoil
-      when: snakeoil_extract_to is defined and snakeoil_extract_to | length != 0
-
-
-  when: expire_diff_days <= 10 or( _certificate_created.stat is defined and not _certificate_created.stat.exists )
-
-
-
-
-#
-#
-#
-#
-#
-#
-#
-#
-
-# #
-# # - name: "remove old temporary path '{{ snakeoil_directory }}'"
-# #   file:
-# #     path: "{{ snakeoil_directory }}/{{ snakeoil_domain }}"
-# #     state: absent
-# #   delegate_to: localhost
-# #
-#
-# - block:
-#     - name: propagate {{ snakeoil_domain }}.tgz
-#       become: true
-#       copy:
-#         src: "{{ local_tmp_directory }}/{{ snakeoil_domain }}.tgz"
-#         dest: "{{ deployment_tmp_directory }}/"
-#
-#     - name: create {{ snakeoil_extract_to }}
-#       file:
-#         path: "{{ snakeoil_extract_to }}"
-#         state: directory
-#
-#     - name: extract {{ snakeoil_domain }}.tgz
-#       unarchive:
-#         src: "{{ deployment_tmp_directory }}/{{ snakeoil_domain }}.tgz"
-#         dest: "{{ snakeoil_extract_to }}"
-#         remote_src: true
-#   tags:
-#     - snakeoil
-#   when: snakeoil_extract_to is defined and snakeoil_extract_to | length != 0
-#
+    - name: extract {{ snakeoil_domain }}.tgz
+      unarchive:
+        src: "{{ deployment_tmp_directory }}/{{ snakeoil_domain }}.tgz"
+        dest: "{{ snakeoil_extract_to }}"
+        remote_src: true
+  tags:
+    - snakeoil
+  when: (
+    snakeoil_extract_to is defined and snakeoil_extract_to | length != 0 and
+    ( _certificate_created.stat is defined and _certificate_created.stat.exists ) )
