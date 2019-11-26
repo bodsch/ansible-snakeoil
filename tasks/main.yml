@@ -28,6 +28,7 @@
 - name: check for created pem {{ snakeoil_directory }}/{{ snakeoil_domain }}/{{ snakeoil_domain }}.pem
   stat:
     path: "{{ snakeoil_directory }}/{{ snakeoil_domain }}/{{ snakeoil_domain }}.pem"
+  become: false
   delegate_to: localhost
   register: _certificate_created
 
@@ -60,12 +61,14 @@
       file:
         path: "{{ snakeoil_directory }}/{{ snakeoil_domain }}"
         state: directory
+      become: false
       delegate_to: localhost
 
     - name: create openssl config
       template:
         src: csr.j2
         dest: "{{ snakeoil_directory }}/{{ snakeoil_domain }}/{{ snakeoil_domain }}.conf"
+      become: false
       delegate_to: localhost
 
     - name: create {{ snakeoil_domain }}.csr
@@ -73,6 +76,7 @@
         openssl req -new -sha512 -nodes -out {{ snakeoil_domain }}.csr -newkey rsa:4096 -keyout {{ snakeoil_domain }}.key -config {{ snakeoil_domain }}.conf
       args:
         chdir: "{{ snakeoil_directory }}/{{ snakeoil_domain }}"
+      become: false
       delegate_to: localhost
 
     - name: create {{ snakeoil_domain }}.crt
@@ -81,6 +85,7 @@
         cat {{ snakeoil_domain }}.crt {{ snakeoil_domain }}.key >> {{ snakeoil_domain }}.pem
       args:
         chdir: "{{ snakeoil_directory }}/{{ snakeoil_domain }}"
+      become: false
       delegate_to: localhost
 
     - name: create dh.pem
@@ -88,6 +93,7 @@
         openssl dhparam -out dh.pem {{ snakeoil_dhparam }}
       args:
         chdir: "{{ snakeoil_directory }}/{{ snakeoil_domain }}"
+      become: false
       delegate_to: localhost
 
   when: expire_diff_days | int <= 10 or ( _certificate_created.stat is defined and not _certificate_created.stat.exists )
@@ -100,6 +106,7 @@
         path: "{{ snakeoil_directory }}/{{ snakeoil_domain }}"
         dest: "{{ local_tmp_directory }}/{{ snakeoil_domain }}.tgz"
         # remove: true
+      become: false
       delegate_to: localhost
 
     - name: propagate {{ snakeoil_domain }}.tgz
