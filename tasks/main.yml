@@ -100,6 +100,14 @@
   when: expire_diff_days | int <= 10 or ( _certificate_created.stat is defined and not _certificate_created.stat.exists )
 
 
+- name: check for created pem {{ snakeoil_directory }}/{{ snakeoil_domain }}/{{ snakeoil_domain }}.pem
+  stat:
+    path: "{{ snakeoil_directory }}/{{ snakeoil_domain }}/{{ snakeoil_domain }}.pem"
+  become: false
+  delegate_to: localhost
+  register: _certificate_created
+
+
 - block:
 
     - name: compress directory {{ snakeoil_directory }}
