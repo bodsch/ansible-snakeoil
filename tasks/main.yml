@@ -5,13 +5,6 @@
     that:
       - snakeoil_domain is defined and snakeoil_domain | length != 0
 
-- name: "remove old temporary path '{{ snakeoil_directory }}'"
-  file:
-    path: "{{ snakeoil_directory }}/{{ snakeoil_domain }}"
-    state: absent
-  delegate_to: localhost
-  when: snakeoil_force
-
 - name: get system timestamp  # noqa 305
   shell: 'date +"%Y-%m-%dT%H:%M:%S"'
   register: timestamp
@@ -31,6 +24,13 @@
   become: false
   delegate_to: localhost
   register: _certificate_created
+
+- name: remove old temporary path '{{ snakeoil_directory }}'
+  file:
+    path: "{{ snakeoil_directory }}/{{ snakeoil_domain }}"
+    state: absent
+  delegate_to: localhost
+  when: snakeoil_force
 
 
 - block:
@@ -55,6 +55,16 @@
         msg: "certificate expires: {{ expire_date }} (in {{ expire_diff_days }} days)"
 
   when: _certificate_created.stat is defined and _certificate_created.stat.exists
+
+
+- name: remove certificate when expires days lower as 10 days
+  file:
+    path: "{{ snakeoil_directory }}/{{ snakeoil_domain }}"
+    state: absent
+  delegate_to: localhost
+  when: (
+    expire_diff_days | int <= 10 or
+    ( _certificate_created.stat is defined and not _certificate_created.stat.exists ) )
 
 - block:
 

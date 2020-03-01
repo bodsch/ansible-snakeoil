@@ -4,7 +4,7 @@
   environment:
     NETRC: ''
   roles:
-    - role: snakeoil
+    - role: ansible-snakeoil
       vars:
         snakeoil_domain: bar.local
         # snakeoil_force: true
