@@ -18,20 +18,28 @@
     current_timestamp: "{{ timestamp.stdout }}"
   no_log: true
 
+- name: check for created snakeoil directory {{ snakeoil_directory }}/{{ snakeoil_domain }}
+  stat:
+    path: "{{ snakeoil_directory }}/{{ snakeoil_domain }}"
+  become: false
+  delegate_to: localhost
+  register: _snakeoil_directory_created
+
 - name: check for created pem {{ snakeoil_directory }}/{{ snakeoil_domain }}/{{ snakeoil_domain }}.pem
   stat:
     path: "{{ snakeoil_directory }}/{{ snakeoil_domain }}/{{ snakeoil_domain }}.pem"
   become: false
   delegate_to: localhost
   register: _certificate_created
+  when: _snakeoil_directory_created is defined and _snakeoil_directory_created.stat is defined and _snakeoil_directory_created.stat.exists
 
 - name: remove old temporary path '{{ snakeoil_directory }}'
   file:
     path: "{{ snakeoil_directory }}/{{ snakeoil_domain }}"
     state: absent
+    become: false
   delegate_to: localhost
   when: snakeoil_force
-
 
 - block:
 
@@ -56,15 +64,16 @@
 
   when: _certificate_created.stat is defined and _certificate_created.stat.exists
 
-
-- name: remove certificate when expires days lower as 10 days
+- name: remove '{{ snakeoil_directory }}/{{ snakeoil_domain }}' when expires days lower as 10 days
   file:
     path: "{{ snakeoil_directory }}/{{ snakeoil_domain }}"
     state: absent
+    become: false
   delegate_to: localhost
   when: (
-    expire_diff_days | int <= 10 or
-    ( _certificate_created.stat is defined and not _certificate_created.stat.exists ) )
+  when: (
+    _snakeoil_directory_created is defined and _snakeoil_directory_created.stat is defined and _snakeoil_directory_created.stat.exists and
+    expire_diff_days | int <= 10 )
 
 - block:
 
@@ -116,7 +125,6 @@
   become: false
   delegate_to: localhost
   register: _certificate_created
-
 
 - block:
 

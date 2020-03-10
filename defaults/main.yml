@@ -1,5 +1,7 @@
 ---
 
+local_tmp_directory: /tmp/ansible_artefacts
+
 snakeoil_extract_to: ''
 
 snakeoil_directory: "{{ local_tmp_directory }}/snakeoil"
