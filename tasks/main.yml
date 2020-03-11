@@ -71,7 +71,6 @@
     become: false
   delegate_to: localhost
   when: (
-  when: (
     _snakeoil_directory_created is defined and _snakeoil_directory_created.stat is defined and _snakeoil_directory_created.stat.exists and
     expire_diff_days | int <= 10 )
 
