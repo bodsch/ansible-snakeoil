@@ -5,6 +5,10 @@ dependency:
 driver:
   name: docker
 
+lint: |
+    yamllint .
+    ansible-lint
+
 platforms:
 
   # - name: centos-7
@@ -55,11 +59,6 @@ provisioner:
       # gather_subset: '!hardware'
   lint:
     name: ansible-lint
-  playbooks:
-    create: create.yml
-    prepare: prepare.yml
-    converge: playbook.yml
-    destroy: destroy.yml
 
 scenario:
   test_sequence:
@@ -75,6 +74,4 @@ scenario:
 
 verifier:
   name: testinfra
-  lint:
-    name: flake8
-    enabled: true
+
