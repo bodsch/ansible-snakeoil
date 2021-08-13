@@ -46,11 +46,9 @@ snakeoil_alt_names:
 ```
 
 
+## manual creation
 
-
-## manuel creation
-
-```
+```bash
 cat > csr_details.txt <<-EOF
 [req]
 default_bits = 4096
