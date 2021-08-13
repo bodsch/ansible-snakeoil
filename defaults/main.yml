@@ -20,3 +20,5 @@ snakeoil_alt_names: []
 snakeoil_dhparam: 1024
 
 snakeoil_force: false
+
+...

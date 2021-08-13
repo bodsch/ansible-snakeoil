@@ -1,4 +1,5 @@
-# ansible-snakeoil
+
+# Ansible Role:  `snakeoil`
 
 build a simple snakeoil certificate for a test environment.
 
@@ -11,6 +12,40 @@ build a simple snakeoil certificate for a test environment.
 - `snakeoil_alt_names`  (default: `[]`) - an array with alternate names or IPs
 - `snakeoil_dhparam`    (default: `1024`) - diffie-hellman parameter length
 - `snakeoil_force`      (default: `false`) - force recreate a certificate (delete the old files)
+
+## default
+
+```yaml
+local_tmp_directory: /tmp/ansible_artefacts
+
+snakeoil_extract_to: ''
+
+snakeoil_directory: "{{ local_tmp_directory }}/snakeoil"
+
+snakeoil_domain: ''
+snakeoil_email: "cert@{{ snakeoil_domain }}"
+
+snakeoil_life_time: 29
+
+snakeoil_alt_names: []
+
+snakeoil_dhparam: 1024
+
+snakeoil_force: false
+```
+
+### Alt names
+
+```yaml
+snakeoil_alt_names:
+  - dns:
+      - foo.bar.local
+      - www.bar.local
+  - ip:
+      - 192.168.2.1
+```
+
+
 
 
 ## manuel creation

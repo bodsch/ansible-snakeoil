@@ -1,16 +1,11 @@
 ---
-- hosts: all
+- name: converge
+  hosts: all
   any_errors_fatal: false
+
   environment:
     NETRC: ''
+
   roles:
     - role: ansible-snakeoil
-      vars:
-        snakeoil_domain: bar.local
-        # snakeoil_force: true
-        snakeoil_alt_names:
-          - dns:
-              - foo.bar.local
-              - www.bar.local
-          - ip:
-              - 192.168.2.1
+
