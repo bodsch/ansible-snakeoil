@@ -14,10 +14,12 @@ rules:
     spaces: 2
   comments: disable
   comments-indentation: disable
+  truthy: disable
 
 ignore: |
   tests/
   molecule/
   .molecule/
   .travis.yml
-  .tox
+  .tox/
+  .github/
