@@ -1,10 +1,6 @@
 ---
 
-local_tmp_directory: /tmp/ansible_artefacts
-
 snakeoil_extract_to: ''
-
-snakeoil_directory: "{{ local_tmp_directory }}/snakeoil"
 
 snakeoil_domain: ''
 snakeoil_email: "cert@{{ snakeoil_domain }}"
@@ -20,5 +16,11 @@ snakeoil_alt_names: []
 snakeoil_dhparam: 1024
 
 snakeoil_force: false
+
+snakeoil_dn:
+  country: DE
+  state: Hamburg
+  location: Hamburg
+  organisation: ACME Inc.
 
 ...

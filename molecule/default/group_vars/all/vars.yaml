@@ -1,6 +1,7 @@
 ---
 
 snakeoil_domain: bar.local
+snakeoil_email: "cert@{{ snakeoil_domain }}"
 # snakeoil_force: true
 snakeoil_alt_names:
   - dns:
@@ -8,5 +9,7 @@ snakeoil_alt_names:
       - www.bar.local
   - ip:
       - 192.168.2.1
+
+# snakeoil_force: true
 
 ...

@@ -1,7 +1,11 @@
 ---
 
-deployment_tmp_directory: /tmp/deployment_artefacts
+snakeoil_local_tmp_directory: "{{
+  lookup('env', 'CUSTOM_LOCAL_TMP_DIRECTORY') |
+  default(lookup('env', 'HOME') ~ '/.cache/ansible/snakeoil', true) }}"
 
-expire_diff_days: 0
+snakeoil_remote_tmp_directory: /tmp/deployment_artefacts
+
+snakeoil_expire_diff_days: 0
 
 ...

@@ -43,7 +43,8 @@ class SnakeoilDate(object):
         result = dict(
             failed=False,
             changed=False,
-            expire_date="none"
+            expire_date="none",
+            diff_days=0
         )
 
         certificate = os.path.join(self.snakeoil_directory, self.snakeoil_domain, self.snakeoil_domain + ".pem")

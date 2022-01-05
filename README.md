@@ -6,21 +6,17 @@ build a simple snakeoil certificate for a test environment.
 ## config parameters
 
 - `snakeoil_extract_to` (default: '') - extract on remote machine
-- `snakeoil_directory`  (default: `/tmp/ansible_artefacts/snakeoil`) - local temp directory
 - `snakeoil_domain`     (default: '') - domain for a certificat (e.g. `bar.local`)
 - `snakeoil_life_time`  (default: `29`) - certificat lifetime in days
 - `snakeoil_alt_names`  (default: `[]`) - an array with alternate names or IPs
 - `snakeoil_dhparam`    (default: `1024`) - diffie-hellman parameter length
 - `snakeoil_force`      (default: `false`) - force recreate a certificate (delete the old files)
+- `snakeoil_dn`         - dictionary with configuration parameters
 
 ## default
 
 ```yaml
-local_tmp_directory: /tmp/ansible_artefacts
-
 snakeoil_extract_to: ''
-
-snakeoil_directory: "{{ local_tmp_directory }}/snakeoil"
 
 snakeoil_domain: ''
 snakeoil_email: "cert@{{ snakeoil_domain }}"
@@ -32,6 +28,12 @@ snakeoil_alt_names: []
 snakeoil_dhparam: 1024
 
 snakeoil_force: false
+
+snakeoil_dn:
+  country: DE
+  state: Hamburg
+  location: Hamburg
+  organisation: ACME Inc.
 ```
 
 ### Alt names
