@@ -13,7 +13,7 @@ lint: |
 
 platforms:
   - name: instance
-    image: "diodonfrost/ansible-${DISTRIBUTION:-debian:10}"
+    image: "bodsch/ansible-${DISTRIBUTION:-debian:11}"
     command: ${MOLECULE_DOCKER_COMMAND:-""}
     docker_host: "${DOCKER_HOST:-unix://run/docker.sock}"
     privileged: true
@@ -38,10 +38,6 @@ provisioner:
     defaults:
       deprecation_warnings: True
       stdout_callback: yaml
-      callback_whitelist: profile_tasks
-      # gather_subset: '!hardware'
-  lint:
-    name: ansible-lint
 
 scenario:
   test_sequence:

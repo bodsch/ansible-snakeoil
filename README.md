@@ -3,6 +3,24 @@
 
 build a simple snakeoil certificate for a test environment.
 
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/bodsch/ansible-snakeoil/CI)][ci]
+[![GitHub issues](https://img.shields.io/github/issues/bodsch/ansible-snakeoil)][issues]
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/bodsch/ansible-snakeoil)][releases]
+
+[ci]: https://github.com/bodsch/ansible-snakeoil/actions
+[issues]: https://github.com/bodsch/ansible-snakeoil/issues?q=is%3Aopen+is%3Aissue
+[releases]: https://github.com/bodsch/ansible-snakeoil/releases
+
+
+## Operating systems
+
+Tested on
+
+* Arch Linux
+* Debian based
+    - Debian 10 / 11
+    - Ubuntu 20.10
+
 ## config parameters
 
 - `snakeoil_extract_to` (default: '') - extract on remote machine
