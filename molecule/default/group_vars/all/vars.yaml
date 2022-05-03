@@ -2,7 +2,7 @@
 
 snakeoil_domain: bar.local
 snakeoil_email: "cert@{{ snakeoil_domain }}"
-# snakeoil_force: true
+
 snakeoil_alt_names:
   - dns:
       - foo.bar.local

@@ -99,6 +99,10 @@ class SnakeoilOpenssl(object):
             _ssl_args.append(crt_file)
             _ssl_args.append("-signkey")
             _ssl_args.append(key_file)
+            _ssl_args.append("-extfile")
+            _ssl_args.append(self.openssl_config)
+            _ssl_args.append("-extensions")
+            _ssl_args.append("req_ext")
             _ssl_args.append("-days")
             _ssl_args.append(str(self.cert_life_time))
 
