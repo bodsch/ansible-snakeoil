@@ -51,7 +51,6 @@
       set_fact:
         snakeoil_expire_date: "{{ _certificate_expire_after.expire_date }}"
         snakeoil_expire_diff_days: "{{ _certificate_expire_after.diff_days }}"
-      # no_log: true
 
     - name: "certificat expires ..."
       debug:
@@ -107,6 +106,7 @@
         state: crt
         directory: "{{ snakeoil_local_tmp_directory }}"
         domain: "{{ snakeoil_domain }}"
+        openssl_config: "{{ snakeoil_domain }}.conf"
         cert_life_time: "{{ snakeoil_life_time | int }}"
 
     - name: create dh.pem
@@ -135,25 +135,25 @@
       become: false
       archive:
         path: "{{ snakeoil_local_tmp_directory }}/{{ snakeoil_domain }}"
-        dest: "{{ snakeoil_local_tmp_directory }}/../{{ snakeoil_domain }}.tgz"
-        mode: 0o660
+        dest: "{{ snakeoil_local_tmp_directory }}/../{{ current_date }}_{{ snakeoil_domain }}.tgz"
+        mode: 0660
 
-    - name: propagate {{ snakeoil_domain }}.tgz
+    - name: propagate {{ current_date }}_{{ snakeoil_domain }}.tgz
       become: true
       copy:
-        src: "{{ snakeoil_local_tmp_directory }}/../{{ snakeoil_domain }}.tgz"
+        src: "{{ snakeoil_local_tmp_directory }}/../{{ current_date }}_{{ snakeoil_domain }}.tgz"
         dest: "{{ snakeoil_remote_tmp_directory }}/"
-        mode: 0o660
+        mode: 0660
 
     - name: create {{ snakeoil_extract_to }}
       file:
         path: "{{ snakeoil_extract_to }}"
         state: directory
-        mode: 0o750
+        mode: 0750
 
-    - name: extract {{ snakeoil_domain }}.tgz
+    - name: extract {{ current_date }}_{{ snakeoil_domain }}.tgz
       unarchive:
-        src: "{{ snakeoil_remote_tmp_directory }}/{{ snakeoil_domain }}.tgz"
+        src: "{{ snakeoil_remote_tmp_directory }}/{{ current_date }}_{{ snakeoil_domain }}.tgz"
         dest: "{{ snakeoil_extract_to }}"
         remote_src: true
   tags:
