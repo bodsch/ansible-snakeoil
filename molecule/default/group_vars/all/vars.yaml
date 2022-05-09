@@ -10,6 +10,4 @@ snakeoil_alt_names:
   - ip:
       - 192.168.2.1
 
-# snakeoil_force: true
-
 ...
