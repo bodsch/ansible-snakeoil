@@ -6,7 +6,7 @@ import json
 import pytest
 import os
 import ssl
-from molecule import util
+# from molecule import util
 
 import testinfra.utils.ansible_runner
 
@@ -133,8 +133,8 @@ def test_cert(host, get_vars):
                 alt_names = dict(map(reversed, alt_names))
                 # print(f"found in certificate: {alt_names}")
                 # seperate values
-                alt_dns = [k for k,v in alt_names.items() if v == "DNS"]
-                alt_ips = [k for k,v in alt_names.items() if v == "IP Address"]
+                alt_dns = [k for k, v in alt_names.items() if v == "DNS"]
+                alt_ips = [k for k, v in alt_names.items() if v == "IP Address"]
                 # print(f"DNS: {alt_dns}")
                 # print(f"IP : {alt_ips}")
                 for n in wanted_alt_names:
