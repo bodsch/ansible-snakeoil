@@ -1,14 +1,27 @@
 ---
 
+galaxy_info:
+  role_name: snakeoil
+  namespace: bodsch
+
+  author: Bodo Schulz
+  description: create a simple snakeoil certificate for a test environment.
+
+  license: "Apache"
+  min_ansible_version: "2.10"
+
+  platforms:
+    - name: ArchLinux
+    - name: Debian
+      versions:
+        # 10
+        - buster
+        - bullseye
+
+  galaxy_tags:
+    - certificate
+    - tls
+
 dependencies: []
 
-galaxy_info:
-  author: bodsch
-  description: snakeoil
-  company: ''
-  license: "Apache"
-  min_ansible_version: 2.2
-  platforms:
-    - name: EL
-      versions:
-        - 7
+...
