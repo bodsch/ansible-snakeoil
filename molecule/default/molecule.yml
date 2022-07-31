@@ -25,9 +25,9 @@ platforms:
       - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-      #- /lib/modules:/lib/modules:ro
-      # needs only by ubuntu 20.04
-      #- /var/lib/docker/overlay2:/var/lib/docker/overlay2:rw
+      # - /lib/modules:/lib/modules:ro
+      #  needs only by ubuntu 20.04
+      # - /var/lib/docker/overlay2:/var/lib/docker/overlay2:rw
 
 provisioner:
   name: ansible
@@ -36,7 +36,7 @@ provisioner:
   #   - -vvv
   config_options:
     defaults:
-      deprecation_warnings: True
+      deprecation_warnings: true
       stdout_callback: yaml
 
 scenario:
@@ -53,4 +53,3 @@ scenario:
 
 verifier:
   name: testinfra
-

@@ -8,10 +8,10 @@ snakeoil_life_time: 720
 
 snakeoil_alt_names:
   - dns:
-    - registry.lan
-    - mee.registry.lan
+      - registry.lan
+      - mee.registry.lan
   - ip:
-    - 10.0.0.10
+      - 10.0.0.10
 
 snakeoil_dhparam: 1024
 snakeoil_force: true
