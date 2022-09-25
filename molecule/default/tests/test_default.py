@@ -5,8 +5,6 @@ from ansible.template import Templar
 import json
 import pytest
 import os
-import ssl
-# from molecule import util
 
 import testinfra.utils.ansible_runner
 
