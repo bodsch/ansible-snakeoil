@@ -1,11 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# (c) 2021, Bodo Schulz <bodo@boone-schulz.de>
+# (c) 2021-2022, Bodo Schulz <bodo@boone-schulz.de>
 # BSD 2-clause (see LICENSE or https://opensource.org/licenses/BSD-2-Clause)
 
 from __future__ import absolute_import, print_function
 import os
+import re
+from enum import Enum
 from datetime import datetime
 
 from ansible.module_utils.basic import AnsibleModule
@@ -18,6 +20,21 @@ ANSIBLE_METADATA = {
     'status': ['preview'],
     'supported_by': 'community'
 }
+
+
+class Month(Enum):
+    Jan = "01"
+    Feb = "02"
+    Mar = "03"
+    Apr = "04"
+    Mai = "05"
+    Jun = "06"
+    Jul = "07"
+    Aug = "08"
+    Sep = "09"
+    Oct = "10"
+    Nov = "11"
+    Dec = "12"
 
 
 class SnakeoilDate(object):
@@ -36,6 +53,9 @@ class SnakeoilDate(object):
         self.snakeoil_directory = module.params.get("snakeoil_directory")
         self.snakeoil_domain = module.params.get("snakeoil_domain")
         self.pattern = module.params.get("pattern")
+
+        # import locale
+        # self.module.log(msg=f"  - language: '{locale.getdefaultlocale()}'")
 
     def run(self):
         """
@@ -60,27 +80,75 @@ class SnakeoilDate(object):
 
             rc, out, err = self._exec(_ssl_args)
 
+            # %b - Month as locale’s abbreviated name.                   (Jan, Feb, …, Dec (en_US))
+            #                                                            (Jan, Feb, …, Dez (de_DE))
+            # %m - month as a zero padded decimal number                 (01, 02)
+            # %d - Day of the month as a zero-padded decimal number.     (01, 02, …, 31)
+            # %H - Hour (24-hour clock) as a zero-padded decimal number. (00, 01, …, 23)
+            # %M - Minute as a zero-padded decimal number.               (00, 01, …, 59)
+            # %S - Second as a zero-padded decimal number.               (00, 01, …, 59)
+            # %Y - Year with century as a decimal number.                (0001, 0002, …, 2013, 2014, …, 9998, 9999)
+            datetime_format = '%b %d %H:%M:%S %Y'
+
+            # now = datetime.now()
+            # self.module.log(msg=f"  - local date: '{now.strftime(datetime_format)}'")
+
             if rc == 0:
-                date = out.rstrip("\n").split("=")[1]
-                _cert_date = datetime.strptime(date, "%b %d %H:%M:%S %Y GMT")
-                _current_date = datetime.now()
+                date_not_after = out.rstrip("\n")
+                # reorg date string (see https://github.com/bodsch/ansible-snakeoil/issues/4)
+                pattern = re.compile(r".*=(?P<month>.{3}) (?P<day>\d+) (?P<hour>\d+):(?P<minute>\d+):(?P<second>\d{2}) (?P<year>\d{4}) GMT$")
+                date_pattern = re.search(pattern, date_not_after)
 
-                diff_days = (_cert_date - _current_date)
-                diff_days = diff_days.days
+                if date_pattern:
+                    """
+                    """
+                    # convert month name to month as a zero padded decimal number
+                    month = Month[date_pattern.group('month')].value
+                    # our new timeformat: 2022-10-24 09:31:51
+                    datetime_format = "%Y-%m-%d %H:%M:%S"
+                    date_not_after = f"{date_pattern.group('year')}-{month}-{date_pattern.group('day')} {date_pattern.group('hour')}:{date_pattern.group('minute')}:{date_pattern.group('second')}"
 
-                _cert_date = _cert_date.strftime(self.pattern)
+                if self.validate_datetime(date_not_after):
+                    """
+                        # datetime are valid
+                    """
+                    try:
+                        _cert_date = datetime.strptime(str(date_not_after), str(datetime_format))
+                        _current_date = datetime.now()
 
-                self.module.log(msg="expire_date  '{}'".format(_cert_date))
-                self.module.log(msg="diff days    '{}'".format(diff_days))
+                        diff_days = (_cert_date - _current_date)
+                        diff_days = diff_days.days
 
-                result = dict(
-                    failed=False,
-                    changed=False,
-                    expire_date=_cert_date,
-                    diff_days=diff_days
-                )
+                        _cert_date = _cert_date.strftime(self.pattern)
+
+                        self.module.log(msg=f"expire_date  '{_cert_date}'")
+                        self.module.log(msg=f"diff days    '{diff_days}'")
+
+                        result = dict(
+                            failed=False,
+                            changed=False,
+                            expire_date=_cert_date,
+                            diff_days=diff_days
+                        )
+
+                    except ValueError as e:
+                        self.module.log(msg=f" ERROR '{e}'")
 
         return result
+
+    def validate_datetime(self, string, whitelist=('%b %d %H:%M:%S %Y GMT', '%Y-%m-%d %H:%M:%S')):
+        """
+        """
+        for fmt in whitelist:
+            try:
+                _ = datetime.strptime(string, fmt)
+            except ValueError:
+                # self.module.log(msg=f" ValueError for '{fmt}' - {e}")
+                pass
+            else:  # if a defined format is found, datetime object will be returned
+                return True
+        else:  # all formats done, none did work...
+            return False  # could also raise an exception here
 
     def _exec(self, args):
         """
@@ -88,11 +156,9 @@ class SnakeoilDate(object):
         self.module.log(msg="args: {}".format(args))
 
         rc, out, err = self.module.run_command(args, check_rc=False)
-
-        self.module.log(msg="  rc : '{}'".format(rc))
-        self.module.log(msg="  out: '{}'".format(str(out)))
-        self.module.log(msg="  err: '{}'".format(err))
-
+        # self.module.log(msg=f"  rc : '{rc}'")
+        # self.module.log(msg=f"  out: '{str(out)}'")
+        # self.module.log(msg=f"  err: '{err}'")
         return rc, out, err
 
 

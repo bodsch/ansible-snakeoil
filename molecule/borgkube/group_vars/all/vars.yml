@@ -14,7 +14,7 @@ snakeoil_alt_names:
       - 10.0.0.10
 
 snakeoil_dhparam: 1024
-snakeoil_force: true
+# snakeoil_force: true
 
 snakeoil_dn:
   country: DE

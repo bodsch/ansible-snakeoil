@@ -10,23 +10,24 @@
     current_date: "{{ ansible_date_time.iso8601[0:10] }}"
     current_timestamp: "{{ ansible_date_time.iso8601[0:19] }}"
 
-- name: check for created snakeoil directory {{ snakeoil_local_tmp_directory }}/{{ snakeoil_domain }}
+- name: check for snakeoil certificate on ansible controller
   delegate_to: localhost
   become: false
-  stat:
-    path: "{{ snakeoil_local_tmp_directory }}/{{ snakeoil_domain }}"
-  register: _snakeoil_local_tmp_directory_created
+  run_once: true
+  block:
+    - name: check for created snakeoil directory {{ snakeoil_local_tmp_directory }}/{{ snakeoil_domain }}
+      stat:
+        path: "{{ snakeoil_local_tmp_directory }}/{{ snakeoil_domain }}"
+      register: _snakeoil_local_tmp_directory_created
 
-- name: check for created pem {{ snakeoil_local_tmp_directory }}/{{ snakeoil_domain }}/{{ snakeoil_domain }}.pem
-  delegate_to: localhost
-  become: false
-  stat:
-    path: "{{ snakeoil_local_tmp_directory }}/{{ snakeoil_domain }}/{{ snakeoil_domain }}.pem"
-  register: _certificate_created
-  when:
-    - _snakeoil_local_tmp_directory_created is defined
-    - _snakeoil_local_tmp_directory_created.stat is defined
-    - _snakeoil_local_tmp_directory_created.stat.exists
+    - name: check for created pem {{ snakeoil_local_tmp_directory }}/{{ snakeoil_domain }}/{{ snakeoil_domain }}.pem
+      stat:
+        path: "{{ snakeoil_local_tmp_directory }}/{{ snakeoil_domain }}/{{ snakeoil_domain }}.pem"
+      register: _certificate_created
+      when:
+        - _snakeoil_local_tmp_directory_created is defined
+        - _snakeoil_local_tmp_directory_created.stat is defined
+        - _snakeoil_local_tmp_directory_created.stat.exists
 
 - name: remove old temporary path '{{ snakeoil_local_tmp_directory }}'
   delegate_to: localhost
@@ -37,7 +38,11 @@
   when:
     - snakeoil_force
 
-- block:
+- name: verify expire date
+  run_once: true
+  delegate_to: localhost
+  become: false
+  block:
     - name: get expire date from certificate
       delegate_to: localhost
       become: false
@@ -45,6 +50,8 @@
         snakeoil_directory: "{{ snakeoil_local_tmp_directory  }}"
         snakeoil_domain: "{{ snakeoil_domain  }}"
         pattern: "%Y-%m-%d"
+      environment:
+        LANG: ""
       register: _certificate_expire_after
 
     - name: set facts
@@ -64,6 +71,7 @@
 - name: remove '{{ snakeoil_local_tmp_directory }}/{{ snakeoil_domain }}' when expires days lower as 10 days
   delegate_to: localhost
   become: false
+  run_once: true
   file:
     path: "{{ snakeoil_local_tmp_directory }}/{{ snakeoil_domain }}"
     state: absent
@@ -73,26 +81,21 @@
     - _snakeoil_local_tmp_directory_created.stat.exists
     - snakeoil_expire_diff_days | int <= 10
 
-- block:
+- name: create certificate
+  block:
     - name: create temporary path
-      delegate_to: localhost
-      become: false
       file:
         path: "{{ snakeoil_local_tmp_directory }}/{{ snakeoil_domain }}"
         state: directory
-        mode: 0o750
+        mode: 0750
 
     - name: create openssl config
-      delegate_to: localhost
-      become: false
       template:
         src: csr.j2
         dest: "{{ snakeoil_local_tmp_directory }}/{{ snakeoil_domain }}/{{ snakeoil_domain }}.conf"
-        mode: 0o660
+        mode: 0660
 
     - name: create {{ snakeoil_domain }}.csr
-      delegate_to: localhost
-      become: false
       snakeoil_openssl:
         state: csr
         directory: "{{ snakeoil_local_tmp_directory }}"
@@ -100,8 +103,6 @@
         openssl_config: "{{ snakeoil_domain }}.conf"
 
     - name: create {{ snakeoil_domain }}.crt
-      delegate_to: localhost
-      become: false
       snakeoil_openssl:
         state: crt
         directory: "{{ snakeoil_local_tmp_directory }}"
@@ -110,13 +111,14 @@
         cert_life_time: "{{ snakeoil_life_time | int }}"
 
     - name: create dh.pem
-      delegate_to: localhost
-      become: false
       snakeoil_openssl:
         state: dhparam
         directory: "{{ snakeoil_local_tmp_directory }}"
         domain: "{{ snakeoil_domain }}"
         dhparam: "{{ snakeoil_dhparam | int }}"
+  delegate_to: localhost
+  become: false
+  run_once: true
   when:
     - snakeoil_expire_diff_days | int <= 10 or
       ( _certificate_created.stat is defined and
@@ -125,11 +127,13 @@
 - name: check for created pem {{ snakeoil_local_tmp_directory }}/{{ snakeoil_domain }}/{{ snakeoil_domain }}.pem
   delegate_to: localhost
   become: false
+  run_once: true
   stat:
     path: "{{ snakeoil_local_tmp_directory }}/{{ snakeoil_domain }}/{{ snakeoil_domain }}.pem"
   register: _certificate_created
 
-- block:
+- name: transfer certificate to destination instance
+  block:
     - name: compress directory {{ snakeoil_local_tmp_directory }}
       delegate_to: localhost
       become: false
