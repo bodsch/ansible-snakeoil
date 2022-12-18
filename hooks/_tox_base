@@ -1,9 +1,9 @@
 
-TOX_ARGS=${TOX_ARGS:-}
+TOX_ARGS=
 
 if [ -n "${TOX_SCENARIO}" ]
 then
-  TOX_ARGS="${TOX_ARGS} --scenario-name ${TOX_SCENARIO}"
+  TOX_ARGS="--scenario-name ${TOX_SCENARIO}"
 fi
 
 TOX_OPTS="-e ${TOX_ANSIBLE}"
