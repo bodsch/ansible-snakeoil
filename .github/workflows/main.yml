@@ -43,7 +43,7 @@ jobs:
           path: 'ansible-snakeoil'
 
       - name: 🐍 set up python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.x'
 
@@ -82,7 +82,7 @@ jobs:
           path: 'ansible-snakeoil'
 
       - name: 🐍 set up python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.x'
 

@@ -3,13 +3,15 @@
 
 build a simple snakeoil certificate for a test environment.
 
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/bodsch/ansible-snakeoil/CI)][ci]
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/bodsch/ansible-snakeoil/main.yml?branch=main)][ci]
 [![GitHub issues](https://img.shields.io/github/issues/bodsch/ansible-snakeoil)][issues]
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/bodsch/ansible-snakeoil)][releases]
+[![Ansible Quality Score](https://img.shields.io/ansible/quality/50067?label=role%20quality)][quality]
 
 [ci]: https://github.com/bodsch/ansible-snakeoil/actions
 [issues]: https://github.com/bodsch/ansible-snakeoil/issues?q=is%3Aopen+is%3Aissue
 [releases]: https://github.com/bodsch/ansible-snakeoil/releases
+[quality]: https://galaxy.ansible.com/bodsch/snakeoil
 
 
 ## Operating systems
@@ -127,3 +129,15 @@ openssl x509 -in cm.local.csr -out cm.local.pem -req -signkey cm.local.key -days
 cat cm.local.key >> cm.local.pem
 ```
 
+
+---
+
+## Author and License
+
+- Bodo Schulz
+
+## License
+
+[Apache](LICENSE)
+
+`FREE SOFTWARE, HELL YEAH!`
