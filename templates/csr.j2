@@ -1,3 +1,4 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
 
 [req]
 default_bits = 4096
@@ -19,15 +20,15 @@ emailAddress = {{ snakeoil_email }}
 subjectAltName = @alt_names
 
 [ alt_names ]
-{% for n in snakeoil_alt_names -%}
-{% if n.dns is defined -%}
-{% for k in n.dns -%}
+{% for n in snakeoil_alt_names %}
+  {% if n.dns is defined %}
+    {% for k in n.dns %}
 DNS.{{ "%-3s" | format(loop.index) }} = {{ k }}
-{% endfor -%}
-{% endif %}
-{% if n.ip is defined -%}
-{% for k in n.ip -%}
+    {% endfor %}
+  {% endif %}
+  {% if n.ip is defined %}
+    {% for k in n.ip %}
 IP.{{ "%-4s" | format(loop.index) }} = {{ k }}
-{% endfor -%}
-{% endif %}
-{% endfor -%}
+    {% endfor %}
+  {% endif %}
+{% endfor %}

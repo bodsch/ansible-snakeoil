@@ -3,16 +3,10 @@
 name: snakeoil whith other config
 
 on:
-  schedule:
-    - cron: "10 4 * * 0"
   workflow_dispatch:
   workflow_run:
     workflows:
-      - "code linter"
-    branches:
-      - main
-      - feature/*
-      - fix/*
+      - "CI"
     types:
       - completed
 
@@ -31,8 +25,9 @@ jobs:
         image:
           - debian:11
         ansible-version:
-          - '5.1'
           - '6.1'
+        scenario:
+          - borgkube
 
     steps:
       - name: check out the codebase.
@@ -52,8 +47,11 @@ jobs:
 
       - name: test with tox
         run: |
-          tox -e ansible_$(printf "${{ matrix.ansible-version }}") \
-            -- molecule test --scenario-name borgkube
+          make \
+            test \
+            -e TOX_SCENARIO="${{ matrix.scenario }}" \
+            -e TOX_ANSIBLE="ansible_${{ matrix.ansible-version }}" \
+            -e DISTRIBUTION="${{ matrix.image }}"
         env:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'
