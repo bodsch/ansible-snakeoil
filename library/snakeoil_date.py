@@ -99,6 +99,8 @@ class SnakeoilDate(object):
                 pattern = re.compile(r".*=(?P<month>.{3}) (?P<day>\d+) (?P<hour>\d+):(?P<minute>\d+):(?P<second>\d{2}) (?P<year>\d{4}) GMT$")
                 date_pattern = re.search(pattern, date_not_after)
 
+                self.module.log(msg=f"  - date_pattern: '{date_pattern}'")
+
                 if date_pattern:
                     """
                     """
