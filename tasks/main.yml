@@ -5,10 +5,18 @@
     that:
       - snakeoil_domain is defined and snakeoil_domain | length != 0
 
-- name: define current_date and current_timestamp
+- name: get minimal setup
+  delegate_to: localhost
+  run_once: true
+  ansible.builtin.setup:
+    gather_subset:
+      - min
+
+- name: define current_date
+  delegate_to: localhost
+  run_once: true
   ansible.builtin.set_fact:
     current_date: "{{ ansible_date_time.iso8601[0:10] }}"
-    current_timestamp: "{{ ansible_date_time.iso8601[0:19] }}"
 
 - name: check for snakeoil certificate on ansible controller
   delegate_to: localhost
