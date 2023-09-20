@@ -174,3 +174,8 @@
         src: "{{ snakeoil_remote_tmp_directory }}/{{ snakeoil_domain }}_{{ current_date }}.tgz"
         dest: "{{ snakeoil_extract_to }}"
         remote_src: true
+
+- name: collect all facts returned by facter
+  ansible.builtin.setup:
+    gather_subset:
+      - all
