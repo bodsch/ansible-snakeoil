@@ -2,7 +2,6 @@
 
 galaxy_info:
   role_name: snakeoil
-  namespace: bodsch
 
   author: Bodo Schulz
   description: create a simple snakeoil certificate for a test environment.
