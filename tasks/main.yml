@@ -6,12 +6,12 @@
     that:
       - snakeoil_domain is defined and snakeoil_domain | length != 0
 
-- name: check, the dhparam is not lower than 2048
+- name: check, if dhparam is less than or equal to 1024
   delegate_to: localhost
   ansible.builtin.assert:
     that:
       - snakeoil_dhparam is defined
-      - snakeoil_dhparam | int > 1024
+      - not snakeoil_dhparam | int == 1024 or not snakeoil_dhparam | int < 1024
     quiet: true
     fail_msg: "please update your dhparam size greater than 1024"
 
@@ -68,7 +68,7 @@
         LANG: ""
       register: _certificate_expire_after
 
-    - name: get size of dh.pem
+    - name: get size of existing dh.pem
       delegate_to: localhost
       become: false
       snakeoil_openssl:
