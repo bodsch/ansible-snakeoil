@@ -1,11 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# (c) 2021, Bodo Schulz <bodo@boone-schulz.de>
-# BSD 2-clause (see LICENSE or https://opensource.org/licenses/BSD-2-Clause)
+# (c) 2021-2023, Bodo Schulz <bodo@boone-schulz.de>
+# Apache-2.0 (see LICENSE or https://opensource.org/license/apache-2-0/)
+# SPDX-License-Identifier: Apache-2.0
 
 from __future__ import absolute_import, print_function
 import os
+import re
 
 from ansible.module_utils.basic import AnsibleModule
 
@@ -54,16 +56,16 @@ class SnakeoilOpenssl(object):
             return dict(
                 failed=True,
                 changed=False,
-                msg="missing directory {}".format(base_directory)
+                msg=f"missing directory {base_directory}"
             )
 
         os.chdir(base_directory)
         _ssl_args = []
 
-        csr_file = os.path.join(self.directory, self.domain, self.domain + ".csr")
-        crt_file = os.path.join(self.directory, self.domain, self.domain + ".crt")
-        pem_file = os.path.join(self.directory, self.domain, self.domain + ".pem")
-        key_file = os.path.join(self.directory, self.domain, self.domain + ".key")
+        csr_file = os.path.join(self.directory, self.domain, f"{self.domain}.csr")
+        crt_file = os.path.join(self.directory, self.domain, f"{self.domain}.crt")
+        pem_file = os.path.join(self.directory, self.domain, f"{self.domain}.pem")
+        key_file = os.path.join(self.directory, self.domain, f"{self.domain}.key")
         dh_file = os.path.join(self.directory, self.domain, "dh.pem")
 
         if self.state == "csr":
@@ -138,6 +140,31 @@ class SnakeoilOpenssl(object):
                 msg="success"
             )
 
+        if self.state == "dhparam_size":
+            _ssl_args.append(self._openssl)
+            _ssl_args.append("dhparam")
+            _ssl_args.append("-in")
+            _ssl_args.append(dh_file)
+            _ssl_args.append("-text")
+
+            rc, out, err = self._exec(_ssl_args)
+
+            if rc == 0:
+                """
+                """
+                output_string = 0
+                pattern = re.compile(r".*DH Parameters: \((?P<size>\d+) bit\).*")
+
+                result = re.search(pattern, out)
+                if result:
+                    output_string = result.group('size')
+
+            result = dict(
+                failed=False,
+                changed=False,
+                size=int(output_string)
+            )
+
         return result
 
     def _exec(self, args):
@@ -146,10 +173,10 @@ class SnakeoilOpenssl(object):
         self.module.log(msg="args: {}".format(args))
 
         rc, out, err = self.module.run_command(args, check_rc=True)
-
         self.module.log(msg="  rc : '{}'".format(rc))
-        self.module.log(msg="  out: '{}'".format(str(out)))
-        self.module.log(msg="  err: '{}'".format(err))
+        if rc != 0:
+            self.module.log(msg="  out: '{}'".format(str(out)))
+            self.module.log(msg="  err: '{}'".format(err))
 
         return rc, out, err
 
@@ -161,25 +188,49 @@ class SnakeoilOpenssl(object):
 
 def main():
     """
-
     """
-    module = AnsibleModule(
-        argument_spec=dict(
-            state=dict(required=True, choose=['crt', 'csr', 'dhparam']),
-            directory=dict(required=True, type="path"),
-            domain=dict(required=True, type="path"),
-            dhparam=dict(default=1024, type="int"),
-            cert_life_time=dict(default=10, type="int"),
-            openssl_config=dict(required=False, type="str"),
-            # openssl_params=dict(required=True, type="path"),
+    args = dict(
+        state=dict(
+            required=True,
+            choose=[
+                'crt',
+                'csr',
+                'dhparam'
+                'dhparam_size'
+            ]
         ),
+        directory=dict(
+            required=True,
+            type="path"
+        ),
+        domain=dict(
+            required=True,
+            type="path"
+        ),
+        dhparam=dict(
+            default=2048,
+            type="int"
+        ),
+        cert_life_time=dict(
+            default=10,
+            type="int"
+        ),
+        openssl_config=dict(
+            required=False,
+            type="str"
+        ),
+        # openssl_params=dict(required=True, type="path"),
+    )
+
+    module = AnsibleModule(
+        argument_spec=args,
         supports_check_mode=False,
     )
 
-    icingacli = SnakeoilOpenssl(module)
-    result = icingacli.run()
+    openssl = SnakeoilOpenssl(module)
+    result = openssl.run()
 
-    module.log(msg="= result : '{}'".format(result))
+    module.log(msg=f"= result : '{result}'")
 
     module.exit_json(**result)
 

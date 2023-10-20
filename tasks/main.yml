@@ -1,16 +1,19 @@
 ---
 
 - name: check, the certificate domain is specified
+  delegate_to: localhost
   ansible.builtin.assert:
     that:
       - snakeoil_domain is defined and snakeoil_domain | length != 0
 
-- name: get minimal setup
+- name: check, the dhparam is not lower than 2048
   delegate_to: localhost
-  run_once: true
-  ansible.builtin.setup:
-    gather_subset:
-      - min
+  ansible.builtin.assert:
+    that:
+      - snakeoil_dhparam is defined
+      - snakeoil_dhparam | int > 1024
+    quiet: true
+    fail_msg: "please update your dhparam size greater than 1024"
 
 - name: define current_date
   delegate_to: localhost
@@ -31,7 +34,7 @@
     - name: check for created pem {{ snakeoil_local_tmp_directory }}/{{ snakeoil_domain }}/{{ snakeoil_domain }}.pem
       ansible.builtin.stat:
         path: "{{ snakeoil_local_tmp_directory }}/{{ snakeoil_domain }}/{{ snakeoil_domain }}.pem"
-      register: _certificate_created
+      register: _certificate_archive_local
       when:
         - _snakeoil_local_tmp_directory_created is defined
         - _snakeoil_local_tmp_directory_created.stat is defined
@@ -51,8 +54,8 @@
   delegate_to: localhost
   become: false
   when:
-    - _certificate_created.stat is defined
-    - _certificate_created.stat.exists
+    - _certificate_archive_local.stat is defined
+    - _certificate_archive_local.stat.exists
   block:
     - name: get expire date from certificate
       delegate_to: localhost
@@ -65,10 +68,21 @@
         LANG: ""
       register: _certificate_expire_after
 
+    - name: get size of dh.pem
+      delegate_to: localhost
+      become: false
+      snakeoil_openssl:
+        state: dhparam_size
+        directory: "{{ snakeoil_local_tmp_directory }}"
+        domain: "{{ snakeoil_domain }}"
+        dhparam: "{{ snakeoil_dhparam | int }}"
+      register: _certificate_dhparam_size
+
     - name: set facts
       ansible.builtin.set_fact:
         snakeoil_expire_date: "{{ _certificate_expire_after.expire_date }}"
         snakeoil_expire_diff_days: "{{ _certificate_expire_after.diff_days }}"
+        snakeoil_dhparam_size: "{{ _certificate_dhparam_size.size | int | default('0') }}"
 
     - name: "certificat expires ..."
       ansible.builtin.debug:
@@ -76,7 +90,7 @@
       when:
         - snakeoil_expire_diff_days | int != 0
 
-- name: remove '{{ snakeoil_local_tmp_directory }}/{{ snakeoil_domain }}' when expires days lower as 10 days
+- name: remove '{{ snakeoil_local_tmp_directory }}/{{ snakeoil_domain }}' when expires days lower as 10 days or dhparam size not {{ snakeoil_dhparam }}
   delegate_to: localhost
   become: false
   run_once: true
@@ -87,15 +101,16 @@
     - _snakeoil_local_tmp_directory_created is defined
     - _snakeoil_local_tmp_directory_created.stat is defined
     - _snakeoil_local_tmp_directory_created.stat.exists
-    - snakeoil_expire_diff_days | int <= 10
+    - snakeoil_expire_diff_days | int <= 10 or snakeoil_dhparam_size | int < snakeoil_dhparam | int
 
 - name: create certificate
   delegate_to: localhost
   become: false
   run_once: true
   when:
-    - snakeoil_expire_diff_days | int <= 10 or
-      (_certificate_created.stat is defined and not _certificate_created.stat.exists)
+    - (snakeoil_expire_diff_days | int <= 10 or
+       snakeoil_dhparam_size | int < snakeoil_dhparam | int) or
+      (_certificate_archive_local.stat is defined and not _certificate_archive_local.stat.exists)
   block:
     - name: create temporary path
       ansible.builtin.file:
@@ -131,13 +146,52 @@
         domain: "{{ snakeoil_domain }}"
         dhparam: "{{ snakeoil_dhparam | int }}"
 
-- name: check for created pem
+    - name: compress directory for {{ snakeoil_domain }}
+      community.general.archive:
+        path: "{{ snakeoil_local_tmp_directory }}/{{ snakeoil_domain }}"
+        dest: "{{ snakeoil_local_tmp_directory }}/{{ snakeoil_domain }}_{{ current_date }}.tgz"
+        mode: 0600
+
+- name: check for archive {{ snakeoil_domain }}_{{ current_date }}.tgz
   delegate_to: localhost
   become: false
   run_once: true
   ansible.builtin.stat:
-    path: "{{ snakeoil_local_tmp_directory }}/{{ snakeoil_domain }}/{{ snakeoil_domain }}.pem"
-  register: _certificate_created
+    path: "{{ snakeoil_local_tmp_directory }}/{{ snakeoil_domain }}_{{ current_date }}.tgz"
+  register: _certificate_archive_local
+
+- name: define checksum for {{ snakeoil_domain }}
+  delegate_to: localhost
+  become: false
+  run_once: true
+  ansible.builtin.stat:
+    path: "{{ snakeoil_local_tmp_directory }}/{{ snakeoil_domain }}_{{ current_date }}.tgz"
+    get_md5: false
+    get_mime: false
+    get_attributes: false
+  register: _certificate_archive_checksum_local
+  when:
+    - _certificate_archive_local
+
+- name: check for archive {{ snakeoil_domain }}_{{ current_date }}.tgz
+  ansible.builtin.stat:
+    path: "{{ snakeoil_remote_tmp_directory }}/{{ snakeoil_domain }}_{{ current_date }}.tgz"
+  register: _certificate_archive_remote
+
+- name: define checksum for {{ snakeoil_domain }}
+  ansible.builtin.stat:
+    path: "{{ snakeoil_remote_tmp_directory }}/{{ snakeoil_domain }}_{{ current_date }}.tgz"
+    get_md5: false
+    get_mime: false
+    get_attributes: false
+  register: _certificate_archive_checksum_remote
+  when:
+    - _certificate_archive_remote
+
+- name: set facts
+  ansible.builtin.set_fact:
+    snakeoil_certificate_archive_checksum_local: "{{ _certificate_archive_checksum_local.stat.checksum | default('+') }}"
+    snakeoil_certificate_archive_checksum_remote: "{{ _certificate_archive_checksum_remote.stat.checksum | default('-') }}"
 
 - name: transfer certificate to destination instance
   tags:
@@ -145,17 +199,10 @@
   when:
     - snakeoil_extract_to is defined
     - snakeoil_extract_to | length != 0
-    - _certificate_created.stat is defined
-    - _certificate_created.stat.exists
+    - _certificate_archive_local.stat.exists | default('false')
+    - not _certificate_archive_remote.stat.exists | default('false')
+    - snakeoil_certificate_archive_checksum_local != snakeoil_certificate_archive_checksum_remote
   block:
-    - name: compress directory for {{ snakeoil_domain }}
-      delegate_to: localhost
-      become: false
-      community.general.archive:
-        path: "{{ snakeoil_local_tmp_directory }}/{{ snakeoil_domain }}"
-        dest: "{{ snakeoil_local_tmp_directory }}/{{ snakeoil_domain }}_{{ current_date }}.tgz"
-        mode: 0600
-
     - name: propagate {{ snakeoil_domain }}_{{ current_date }}.tgz
       become: true
       ansible.builtin.copy:
@@ -174,8 +221,3 @@
         src: "{{ snakeoil_remote_tmp_directory }}/{{ snakeoil_domain }}_{{ current_date }}.tgz"
         dest: "{{ snakeoil_extract_to }}"
         remote_src: true
-
-- name: collect all facts returned by facter
-  ansible.builtin.setup:
-    gather_subset:
-      - all

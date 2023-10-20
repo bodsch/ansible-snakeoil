@@ -13,7 +13,7 @@ snakeoil_alt_names: []
 #  - ip:
 #      - 192.168.124.10
 #
-snakeoil_dhparam: 1024
+snakeoil_dhparam: 2048
 
 snakeoil_force: false
 
