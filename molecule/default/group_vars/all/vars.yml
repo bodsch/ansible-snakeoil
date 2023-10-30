@@ -7,7 +7,7 @@ snakeoil_extract_to: '/etc/ssl'
 snakeoil_domain: bar.local
 snakeoil_email: "cert@{{ snakeoil_domain }}"
 
-snakeoil_life_time: 4
+snakeoil_life_time: 15
 
 snakeoil_alt_names:
   - dns:
