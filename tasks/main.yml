@@ -34,7 +34,7 @@
     - name: check for created pem {{ snakeoil_local_tmp_directory }}/{{ snakeoil_domain }}/{{ snakeoil_domain }}.pem
       ansible.builtin.stat:
         path: "{{ snakeoil_local_tmp_directory }}/{{ snakeoil_domain }}/{{ snakeoil_domain }}.pem"
-      register: _certificate_archive_local
+      register: _certificate_created
       when:
         - _snakeoil_local_tmp_directory_created is defined
         - _snakeoil_local_tmp_directory_created.stat is defined
@@ -54,8 +54,8 @@
   delegate_to: localhost
   become: false
   when:
-    - _certificate_archive_local.stat is defined
-    - _certificate_archive_local.stat.exists
+    - _certificate_created.stat is defined
+    - _certificate_created.stat.exists
   block:
     - name: get expire date from certificate
       delegate_to: localhost
