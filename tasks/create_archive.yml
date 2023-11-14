@@ -29,7 +29,7 @@
     - name: define checksum for {{ snakeoil_domain }} on ansible controller
       ansible.builtin.stat:
         path: "{{ snakeoil_local_tmp_directory }}/{{ snakeoil_domain }}_{{ current_date }}.tgz"
-        get_md5: false
+        get_checksum: false
         get_mime: false
         get_attributes: false
       register: _certificate_archive_checksum_local
