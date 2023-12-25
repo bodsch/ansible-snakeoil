@@ -3,6 +3,13 @@
 
 build a simple snakeoil certificate for a test environment.
 
+---
+
+> Further development of this Ansible role has been moved to Collection [bodsch.core](https://github.com/bodsch/ansible-collection-core).
+> **This repository will therefore no longer be actively maintained.**
+
+---
+
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/bodsch/ansible-snakeoil/main.yml?branch=main)][ci]
 [![GitHub issues](https://img.shields.io/github/issues/bodsch/ansible-snakeoil)][issues]
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/bodsch/ansible-snakeoil)][releases]
